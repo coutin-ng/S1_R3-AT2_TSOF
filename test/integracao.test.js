@@ -47,6 +47,13 @@ describe('API de montadoras', () => {
         expect(response.body.data).toHaveLength(2)
     });
 
+    it('deve gerar erro ao listar as montadoras com a rota errada.', async () => {
+        const response = await request(app)
+            .get('/montadora')
+
+        expect(response.status).toBe(404);
+    });
+
     it('deve editar corretamente uma montadora existente.', async () => {
 
         const mont = await MontadoraFactory.create("Valdo", "Br");
@@ -66,6 +73,25 @@ describe('API de montadoras', () => {
         const response = await request(app)
             .put('/montadoras?id=9999')
             .send({ nome: 'Hyundai', pais: 'Coreia do Sul' });
+
+        expect(response.status).toBe(404);
+    });
+
+    it('deve excluir corretamente uma montadora existente.', async () => {
+
+        const mont = await MontadoraFactory.create("Valdo", "Br");
+
+        const response = await request(app)
+            .delete('/montadoras/' + mont.id)
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty('affectedRows')
+    });
+
+    it('deve gerar erro ao excluir uma montadora inexistente.', async () => {
+
+        const response = await request(app)
+            .delete('/montadoras/')
 
         expect(response.status).toBe(404);
     });
@@ -169,9 +195,130 @@ describe('API de veiculos', () => {
         const veic = await VeiculoFactory.create('uno', 'fnng3401', '1999', 'preto', '10000', cli.id, mont.id);
 
         const response = await request(app)
-            .delete('/veiculos?id=' + veic.id)
+            .delete('/veiculos/' + veic.id)
 
         expect(response.status).toBe(200);
         expect(response.body.data).toHaveProperty('affectedRows')
+    });
+
+    it('deve gerar erro ao excluir um veiculo inexistente.', async () => {
+
+        const response = await request(app)
+            .delete('/veiculos/')
+
+        expect(response.status).toBe(404);
+    });
+
+    it('deve listar corretamente os veiculos criados.', async () => {
+        const response = await request(app)
+            .get('/veiculos')
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveLength(1)
+    });
+
+    it('deve gerar erro ao listar os veiculos com a rota errada.', async () => {
+        const response = await request(app)
+            .get('/veiculo')
+
+        expect(response.status).toBe(404);
+    });
+});
+
+
+
+
+
+describe('API de clientes', () => {
+    beforeEach(async () => {
+        await ClienteFactory.create("Coutinho", "49227077863", "13178505", "rua Inacio Nogueira de Moura", "Jardim do Trevo", "Sumaré", "SP", "378", "complemento");
+
+        vi.clearAllMocks();
+    });
+
+    afterEach(async () => {
+        await clearDatabase();
+
+        vi.resetAllMocks();
+    });
+
+    it('deve criar um cliente com sucesso.', async () => {
+
+        const response = await request(app)
+            .post('/clientes')
+            .send({ nome: 'Nicolas', cpf: '49227077863', cep: '13178505', logradouro: 'rua Inacio Nogueira de Moura', bairro: 'Jardim do Trevo',cidade: 'Sumaré', uf: 'SP', numero: '378', complemento: 'Complemento' });
+
+        expect(response.status).toBe(201);
+        expect(response.body.data).toHaveProperty('insertId');
+    });
+
+    it('deve gerar erro ao criar um cliente com dados inválidos.', async () => {
+
+        const cli = await ClienteFactory.create("Coutinho", "49227077863", "13178505", "rua Inacio Nogueira de Moura", "Jardim do Trevo", "Sumaré", "SP", "378", "complemento");
+
+        const response = await request(app)
+            .post('/clientes')
+            .send({ nome: 'Nicolas', cpf: 'as', cep: '13178505', logradouro: 'rua Inacio Nogueira de Moura', bairro: 'Jardim do Trevo',cidade: 'Sumaré', uf: 'SP', numero: '378', complemento: 'Complemento' });
+
+        expect(response.status).toBe(500);
+    });
+
+    it('deve editar corretamente um cliente existente.', async () => {
+
+        const cli = await ClienteFactory.create("Coutinho", "49227077863", "13178505", "rua Inacio Nogueira de Moura", "Jardim do Trevo", "Sumaré", "SP", "378", "complemento");
+
+        const response = await request(app)
+            .put('/clientes?id=' + cli.id)
+            .send({ nome: 'Nicolas', cpf: '49227077863', cep: '13178505', logradouro: 'rua Inacio Nogueira de Moura', bairro: 'Jardim do Trevo',cidade: 'Sumaré', uf: 'SP', numero: '378', complemento: 'Complemento' });
+
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty('affectedRows')
+    });
+
+    it('deve gerar erro ao editar um cliente com dados inválidos.', async () => {
+
+        const cli = await ClienteFactory.create("Coutinho", "49227077863", "13178505", "rua Inacio Nogueira de Moura", "Jardim do Trevo", "Sumaré", "SP", "378", "complemento");
+
+        const response = await request(app)
+            .put('/clientes?id=' + cli.id)
+            .send({ nome: 'Nicolas', cpf: 'asd', cep: '13178505', logradouro: 'rua Inacio Nogueira de Moura', bairro: 'Jardim do Trevo',cidade: 'Sumaré', uf: 'SP', numero: '378', complemento: 'Complemento' });
+
+
+        expect(response.status).toBe(500);
+    });
+
+    it('deve excluir corretamente um cliente existente.', async () => {
+
+        const cli = await ClienteFactory.create("Coutinho", "49227077863", "13178505", "rua Inacio Nogueira de Moura", "Jardim do Trevo", "Sumaré", "SP", "378", "complemento");
+
+        const response = await request(app)
+            .delete('/clientes/' + cli.id)
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveProperty('affectedRows')
+    });
+
+    it('deve gerar erro ao excluir um cliente inexistente.', async () => {
+
+        const response = await request(app)
+            .delete('/clientes/')
+
+        expect(response.status).toBe(404);
+    });
+
+    it('deve listar corretamente os clientes criados.', async () => {
+        const response = await request(app)
+            .get('/clientes')
+
+        expect(response.status).toBe(200);
+        expect(response.body.data).toHaveLength(1)
+    });
+
+    it('deve gerar erro ao listar os clientes com a rota errada.', async () => {
+        const response = await request(app)
+            .get('/cliente')
+
+        expect(response.status).toBe(404);
     });
 });
